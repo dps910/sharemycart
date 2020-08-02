@@ -29,6 +29,7 @@ class Firebase {
 		this.googleProvider = new app.auth.GoogleAuthProvider()
 		this.facebookProvider = new app.auth.FacebookAuthProvider()
 		this.twitterProvider = new app.auth.TwitterAuthProvider()
+		this.githubProvider = new app.auth.GithubAuthProvider()
 	}
 
 	// *** Auth API ***
@@ -40,19 +41,29 @@ class Firebase {
 		this.auth.signInWithEmailAndPassword(email, password)
 
 	doSignInWithGoogle = (/*{redirectUri, state}*/) => {
-		// signinWithRedirect is curretly not possible:
-		// since a user might have opened a shopping list from a link as first step, 
-		// we need to redirect to this very same (/share<GUID>)
-		// For this, we'd need to adapt the redirectURI and the state.
-		// However, both are reserved properties and cannot be set by the consumer, 
-		// see https://firebase.google.com/docs/reference/js/firebase.auth.GoogleAuthProvider#setcustomparameters
-		// Leaving the code below for documentation purposes
-		// const provider = new app.auth.GoogleAuthProvider()
-		// provider.setCustomParameters({ redirect_uri: redirectUri || '/', state })
-		// return this.auth.signInWithRedirect(provider)
-		
-		return this.auth.signInWithPopup(this.googleProvider)
+		/* 
+			signinWithRedirect is curretly not possible:
+			since a user might have opened a shopping list from a link as first step, 
+			we need to redirect to this very same (/share<GUID>)
+			For this, we'd need to adapt the redirectURI and the state.
+			However, both are reserved properties and cannot be set by the consumer, 
+			see https://firebase.google.com/docs/reference/js/firebase.auth.GoogleAuthProvider#setcustomparameters
+			Leaving the code below for documentation purposes
 
+			const provider = new app.auth.GoogleAuthProvider()
+			provider.setCustomParameters({ redirect_uri: redirectUri || '/', state })
+			return this.auth.signInWithRedirect(provider)
+		*/ 
+		
+		return this.auth.signInWithPopup(this.googleProvider).then((result) => {
+			// Gives you a google access token, so you can access the Google API
+			const token = result.credential.accessToken
+			// Signed-in user info
+			const user = result.user
+			console.log(user, token)
+		}).catch((error) => {
+			console.error(error.code, error.message)
+		})
 	}
 
 	doSignInWithFacebook = () =>
@@ -60,6 +71,10 @@ class Firebase {
 
 	doSignInWithTwitter = () =>
 		this.auth.signInWithPopup(this.twitterProvider)
+
+	doSignInWithGitHub = () => {
+		this.auth.signInWithPopup(this.githubProvider)
+	}
 
 	doSignOut = () => this.auth.signOut()
 
